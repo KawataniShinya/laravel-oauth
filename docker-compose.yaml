@@ -1,0 +1,109 @@
+services:
+  auth-server:
+    build:
+      context: ./docker/auth-server
+      dockerfile: Dockerfile
+    container_name: auth-server
+    environment:
+      TZ: "Asia/Tokyo"
+      PHP_XDEBUG: "On"
+      PHP_XDEBUG_REMOTE_HOST: "host.docker.internal"
+      PHP_IDE_CONFIG: serverName=auth-server-xdebug
+    volumes:
+      - ./auth-app:/var/www/app
+    networks:
+      sample-network:
+
+  auth-node:
+    build:
+      context: ./docker/auth-node
+      dockerfile: Dockerfile
+    container_name: auth-node
+    volumes:
+      - ./auth-app:/var/www/app
+    expose:
+      - "80"
+    environment:
+      VIRTUAL_HOST: localhost.auth-node.sample.jp
+    tty: true
+    stdin_open: true
+    working_dir: /var/www/app
+    command:
+      # build:build only(for product), docker:npm run dev on docker, bash:only start container
+      docker
+    networks:
+      sample-network:
+        aliases:
+          - localhost.auth-node.sample.jp
+
+  nginx-auth-app:
+    image: nginx:1.28.0-alpine
+    container_name: nginx-auth-app
+    expose:
+      - "80"
+    environment:
+      VIRTUAL_HOST: localhost.auth-app.sample.jp
+    volumes:
+      - ./auth-app:/var/www/app
+      - ./docker/auth-server/nginx/default.conf:/etc/nginx/conf.d/default.conf
+    networks:
+      sample-network:
+        aliases:
+          - localhost.auth-app.sample.jp
+
+  auth-db:
+    build:
+      context: docker/auth-mysql
+      dockerfile: Dockerfile
+    container_name: auth-db
+    platform: linux/x86_64
+    environment:
+      TZ: "Asia/Tokyo"
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: db
+      MYSQL_USER: user
+      MYSQL_PASSWORD: password
+    ports:
+      - "13306:3306"
+    volumes:
+      - ./docker/auth-mysql/env/my.cnf:/etc/mysql/my.cnf
+      - ./docker/auth-mysql/data:/var/lib/mysql
+    networks:
+      sample-network:
+
+  nginx-proxy:
+    build:
+      context: ./docker/proxy
+      dockerfile: Dockerfile
+    container_name: nginx-proxy
+    environment:
+      VIRTUAL_TIMEOUT: 1800 # タイムアウト30分
+    ports:
+      - '80:80'
+    volumes:
+      - /var/run/docker.sock:/tmp/docker.sock:ro
+      - ./docker/proxy/custom.conf:/etc/nginx/conf.d/custom.conf
+    networks:
+      sample-network:
+        aliases:
+          - localhost.proxy.sample.jp
+
+  redis:
+    image: redis:5-alpine
+    container_name: redis
+    expose:
+      - "6379"
+    ports:
+      - "6379:6379"
+    environment:
+      TZ: "Asia/Tokyo"
+    volumes:
+      - ./redis:/data
+    networks:
+      sample-network:
+
+networks:
+  sample-network:
+    driver: bridge
+    internal: false
+    name: sample-network
