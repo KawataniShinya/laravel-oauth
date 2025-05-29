@@ -14,4 +14,12 @@ enum Scope: string
             self::GENERAL      => '一般情報',
         };
     }
+
+    public function id(): int
+    {
+        return match($this) {
+            self::CONFIDENTIAL => 1,
+            self::GENERAL      => 2,
+        };
+    }
 }

@@ -15,6 +15,7 @@ class ScopeSeeder extends Seeder
     {
         foreach (Scope::cases() as $scope) {
             DB::table('scopes')->insertOrIgnore([
+                'id' => $scope->id(),
                 'name' => $scope->value,
                 'created_at' => now(),
                 'updated_at' => now(),

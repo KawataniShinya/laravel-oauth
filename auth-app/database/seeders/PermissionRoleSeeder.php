@@ -14,23 +14,18 @@ class PermissionRoleSeeder extends Seeder
      */
     public function run(): void
     {
-        $roleIds = DB::table('roles')->pluck('id', 'name');
-        $permissionIds = DB::table('permissions')->pluck('id', 'name');
-
         // 管理者に全パーミッション
-        foreach ($permissionIds as $permissionId) {
+        foreach (Permission::cases() as $permission) {
             DB::table('permission_role')->insertOrIgnore([
-                'role_id' => $roleIds[Role::ADMIN->value],
-                'permission_id' => $permissionId,
+                'role_id' => Role::ADMIN->id(),
+                'permission_id' => $permission->id(),
             ]);
         }
 
         // スタッフは read のみ
-        if (isset($permissionIds['read'])) {
-            DB::table('permission_role')->insertOrIgnore([
-                'role_id' => $roleIds[Role::STAFF->value],
-                'permission_id' => $permissionIds[Permission::READ->value],
-            ]);
-        }
+        DB::table('permission_role')->insertOrIgnore([
+            'role_id' => Role::STAFF->id(),
+            'permission_id' => Permission::READ->id(),
+        ]);
     }
 }

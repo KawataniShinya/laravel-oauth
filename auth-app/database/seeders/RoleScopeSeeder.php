@@ -14,23 +14,18 @@ class RoleScopeSeeder extends Seeder
      */
     public function run(): void
     {
-        $roleIds = DB::table('roles')->pluck('id', 'name');
-        $scopeIds = DB::table('scopes')->pluck('id', 'name');
-
         // 管理者は全てのスコープにアクセス
-        foreach ($scopeIds as $scopeId) {
+        foreach (Scope::cases() as $scope) {
             DB::table('role_scope')->insertOrIgnore([
-                'role_id' => $roleIds[Role::ADMIN->value],
-                'scope_id' => $scopeId,
+                'role_id' => Role::ADMIN->id(),
+                'scope_id' => $scope->id(),
             ]);
         }
 
         // スタッフは general のみ
-        if (isset($scopeIds[Scope::GENERAL->value])) {
-            DB::table('role_scope')->insertOrIgnore([
-                'role_id' => $roleIds[Role::STAFF->value],
-                'scope_id' => $scopeIds[Scope::GENERAL->value],
-            ]);
-        }
+        DB::table('role_scope')->insertOrIgnore([
+            'role_id' => Role::STAFF->id(),
+            'scope_id' => Scope::GENERAL->id(),
+        ]);
     }
 }

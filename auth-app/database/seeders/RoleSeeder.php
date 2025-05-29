@@ -15,6 +15,7 @@ class RoleSeeder extends Seeder
     {
         foreach (Role::cases() as $role) {
             DB::table('roles')->insertOrIgnore([
+                'id' => $role->id(),
                 'name' => $role->value,
                 'created_at' => now(),
                 'updated_at' => now(),

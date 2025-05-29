@@ -21,15 +21,13 @@ class UserSeeder extends Seeder
                 'name' => 'manager',
                 'email' => 'manager@test.com',
                 'password' => Hash::make('password123'),
-                'role_id' =>
-                    DB::table('roles')->where('name', Role::ADMIN->value)->value('id'),
+                'role_id' => Role::ADMIN->id(),
             ],
             [
                 'name' => 'staff',
                 'email' => 'staff@test.com',
                 'password' => Hash::make('password123'),
-                'role_id' =>
-                    DB::table('roles')->where('name', Role::STAFF->value)->value('id'),
+                'role_id' => Role::STAFF->id(),
             ],
         ]);
     }

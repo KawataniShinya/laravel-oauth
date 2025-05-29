@@ -16,4 +16,13 @@ enum Permission: string
             self::DELETE => '削除',
         };
     }
+
+    public function id(): int
+    {
+        return match($this) {
+            self::READ   => 1,
+            self::WRITE  => 2,
+            self::DELETE => 3,
+        };
+    }
 }

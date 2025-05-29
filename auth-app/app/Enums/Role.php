@@ -16,4 +16,13 @@ enum Role: string
             self::USER  => '一般ユーザー',
         };
     }
+
+    public function id(): int
+    {
+        return match($this) {
+            self::ADMIN => 1,
+            self::STAFF => 2,
+            self::USER  => 3,
+        };
+    }
 }

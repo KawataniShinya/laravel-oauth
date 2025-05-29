@@ -15,6 +15,7 @@ class PermissionSeeder extends Seeder
     {
         foreach (Permission::cases() as $permission) {
             DB::table('permissions')->insertOrIgnore([
+                'id' => $permission->id(),
                 'name' => $permission->value,
                 'created_at' => now(),
                 'updated_at' => now(),
