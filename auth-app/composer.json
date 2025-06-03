@@ -13,6 +13,7 @@
         "laravel/passport": "12.4.2",
         "laravel/sanctum": "^4.0",
         "laravel/tinker": "^2.10.1",
+        "predis/predis": "3.0.1",
         "tightenco/ziggy": "^2.0"
     },
     "require-dev": {
