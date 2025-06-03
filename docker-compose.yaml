@@ -71,6 +71,78 @@ services:
     networks:
       sample-network:
 
+  resource-server:
+    build:
+      context: ./docker/resource-server
+      dockerfile: Dockerfile
+    container_name: resource-server
+    environment:
+      TZ: "Asia/Tokyo"
+      PHP_XDEBUG: "On"
+      PHP_XDEBUG_REMOTE_HOST: "host.docker.internal"
+      PHP_IDE_CONFIG: serverName=resource-server-xdebug
+    volumes:
+      - ./resource-app:/var/www/app
+    networks:
+      sample-network:
+
+  resource-node:
+    build:
+      context: ./docker/resource-node
+      dockerfile: Dockerfile
+    container_name: resource-node
+    volumes:
+      - ./resource-app:/var/www/app
+    expose:
+      - "80"
+    environment:
+      VIRTUAL_HOST: localhost.resource-node.sample.jp
+    tty: true
+    stdin_open: true
+    working_dir: /var/www/app
+    command:
+      # build:build only(for product), docker:npm run dev on docker, bash:only start container
+      docker
+    networks:
+      sample-network:
+        aliases:
+          - localhost.resource-node.sample.jp
+
+  nginx-resource-app:
+    image: nginx:1.28.0-alpine
+    container_name: nginx-resource-app
+    expose:
+      - "80"
+    environment:
+      VIRTUAL_HOST: localhost.resource-app.sample.jp
+    volumes:
+      - ./resource-app:/var/www/app
+      - ./docker/resource-server/nginx/default.conf:/etc/nginx/conf.d/default.conf
+    networks:
+      sample-network:
+        aliases:
+          - localhost.resource-app.sample.jp
+
+  resource-db:
+    build:
+      context: docker/resource-mysql
+      dockerfile: Dockerfile
+    container_name: resource-db
+    platform: linux/x86_64
+    environment:
+      TZ: "Asia/Tokyo"
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: db
+      MYSQL_USER: user
+      MYSQL_PASSWORD: password
+    ports:
+      - "23306:3306"
+    volumes:
+      - ./docker/resource-mysql/env/my.cnf:/etc/mysql/my.cnf
+      - ./docker/resource-mysql/data:/var/lib/mysql
+    networks:
+      sample-network:
+
   nginx-proxy:
     build:
       context: ./docker/proxy
