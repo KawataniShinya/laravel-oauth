@@ -25,3 +25,4 @@ npm-debug.log
 Thumbs.db
 yarn-error.log
 /_ide_helper*
+.vite
