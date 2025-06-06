@@ -23,8 +23,7 @@ class AuthServiceProvider extends ServiceProvider
         // パスワードグラントなどを有効にする
         Passport::enablePasswordGrant();
 
-        // 必要に応じてトークンの有効期限なども設定できます
-        // Passport::tokensExpireIn(now()->addDays(15));
-        // Passport::refreshTokensExpireIn(now()->addDays(30));
+        Passport::tokensExpireIn(now()->addDays(config('passport.token_expires_days')));
+        Passport::refreshTokensExpireIn(now()->addDays(config('passport.refresh_token_expires_days')));
     }
 }
