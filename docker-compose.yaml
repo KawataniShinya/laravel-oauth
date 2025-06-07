@@ -143,6 +143,78 @@ services:
     networks:
       sample-network:
 
+  client-server:
+    build:
+      context: ./docker/client-server
+      dockerfile: Dockerfile
+    container_name: client-server
+    environment:
+      TZ: "Asia/Tokyo"
+      PHP_XDEBUG: "On"
+      PHP_XDEBUG_REMOTE_HOST: "host.docker.internal"
+      PHP_IDE_CONFIG: serverName=client-server-xdebug
+    volumes:
+      - ./client-app:/var/www/app
+    networks:
+      sample-network:
+
+  client-node:
+    build:
+      context: ./docker/client-node
+      dockerfile: Dockerfile
+    container_name: client-node
+    volumes:
+      - ./client-app:/var/www/app
+    expose:
+      - "80"
+    environment:
+      VIRTUAL_HOST: localhost.client-node.sample.jp
+    tty: true
+    stdin_open: true
+    working_dir: /var/www/app
+    command:
+      # build:build only(for product), docker:npm run dev on docker, bash:only start container
+      docker
+    networks:
+      sample-network:
+        aliases:
+          - localhost.client-node.sample.jp
+
+  nginx-client-app:
+    image: nginx:1.28.0-alpine
+    container_name: nginx-client-app
+    expose:
+      - "80"
+    environment:
+      VIRTUAL_HOST: localhost.client-app.sample.jp
+    volumes:
+      - ./client-app:/var/www/app
+      - ./docker/client-server/nginx/default.conf:/etc/nginx/conf.d/default.conf
+    networks:
+      sample-network:
+        aliases:
+          - localhost.client-app.sample.jp
+
+  client-db:
+    build:
+      context: docker/client-mysql
+      dockerfile: Dockerfile
+    container_name: client-db
+    platform: linux/x86_64
+    environment:
+      TZ: "Asia/Tokyo"
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: db
+      MYSQL_USER: user
+      MYSQL_PASSWORD: password
+    ports:
+      - "33306:3306"
+    volumes:
+      - ./docker/client-mysql/env/my.cnf:/etc/mysql/my.cnf
+      - ./docker/client-mysql/data:/var/lib/mysql
+    networks:
+      sample-network:
+
   nginx-proxy:
     build:
       context: ./docker/proxy
