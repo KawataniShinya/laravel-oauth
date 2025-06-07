@@ -112,4 +112,9 @@ return [
 
     'password_timeout' => env('AUTH_PASSWORD_TIMEOUT', 10800),
 
+    'introspection' => [
+        'client_id' => env('INTROSPECTION_CLIENT_ID'),
+        'client_secret' => env('INTROSPECTION_CLIENT_SECRET'),
+        'endpoint' => env('INTROSPECTION_ENDPOINT'),
+    ],
 ];
