@@ -1,5 +1,5 @@
 import { createApp, h } from 'vue';
-import { createInertiaApp } from '@inertiajs/inertia-vue3';
+import { createInertiaApp } from '@inertiajs/vue3'
 
 createInertiaApp({
     resolve: name => import(`./Pages/${name}.vue`),

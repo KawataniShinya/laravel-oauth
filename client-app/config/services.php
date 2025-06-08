@@ -35,4 +35,14 @@ return [
         ],
     ],
 
+    'auth' => [
+        'client_id' => env('AUTH_CLIENT_ID'),
+        'client_secret' => env('AUTH_CLIENT_SECRET'),
+        'token_url' => env('AUTH_TOKEN_URL'),
+    ],
+
+    'resource' => [
+        'product_url' => env('RESOURCE_PRODUCT_URL'),
+    ],
+
 ];
