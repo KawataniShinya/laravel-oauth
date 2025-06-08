@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\CustomerController;
 use App\Http\Controllers\ProductController;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
@@ -9,3 +10,4 @@ Route::get('/', function () {
 });
 
 Route::post('/products', [ProductController::class, 'fetch']);
+Route::post('/customers', [CustomerController::class, 'fetch']);

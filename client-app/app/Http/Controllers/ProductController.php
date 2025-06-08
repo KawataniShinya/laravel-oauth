@@ -2,11 +2,9 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\UserToken;
 use App\UseCase\FetchAccessToken;
 use App\UseCase\FetchProductList;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Http;
 use Inertia\Inertia;
 
 class ProductController extends Controller

@@ -43,6 +43,7 @@ return [
 
     'resource' => [
         'product_url' => env('RESOURCE_PRODUCT_URL'),
+        'customer_url' => env('RESOURCE_CUSTOMER_URL'),
     ],
 
 ];
