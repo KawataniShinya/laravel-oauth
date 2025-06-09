@@ -20,22 +20,25 @@ class ProductController extends Controller
 
     public function fetch(Request $request)
     {
-        $request->validate([
-            'username' => 'required',
-            'password' => 'required',
-        ]);
+        $username = $request->session()->get('username');
 
-        $username = $request->username;
-        $password = $request->password;
-
-        $token = $this->fetchAccessToken->handle($username, $password);
+        $token = $this->fetchAccessToken->handle($username);
         if (!$token) {
-            return response()->json(['error' => 'トークン取得失敗'], 401);
+            return Inertia::render('ResourceSelection', [
+                'errorMessage' => 'トークンが無効です。',
+            ]);
         }
 
         $products = $this->fetchProductList->handle($token->access_token);
+        if (is_string($products)) {
+            return Inertia::render('ResourceSelection', [
+                'errorMessage' => '許可されていません: ' . $products,
+            ]);
+        }
         if (!$products) {
-            return response()->json(['error' => '商品取得失敗'], 500);
+            return Inertia::render('ResourceSelection', [
+                'errorMessage' => '商品取得失敗',
+            ]);
         }
 
         return Inertia::render('ProductList', [

@@ -36,8 +36,12 @@ return [
     ],
 
     'auth' => [
-        'client_id' => env('AUTH_CLIENT_ID'),
-        'client_secret' => env('AUTH_CLIENT_SECRET'),
+        'password_grant_client_id' => env('AUTH_PASSWORD_GRANT_CLIENT_ID'),
+        'password_grant_client_secret' => env('AUTH_PASSWORD_GRANT_CLIENT_SECRET'),
+        'code_grant_url' => env('AUTH_CODE_GRANT_URL'),
+        'code_grant_client_id' => env('AUTH_CODE_GRANT_CLIENT_ID'),
+        'code_grant_client_secret' => env('AUTH_CODE_GRANT_CLIENT_SECRET'),
+        'code_redirect_uri' => env('AUTH_CODE_REDIRECT_URI'),
         'token_url' => env('AUTH_TOKEN_URL'),
     ],
 
