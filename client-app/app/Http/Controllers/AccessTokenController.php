@@ -50,6 +50,8 @@ class AccessTokenController extends Controller
     {
         $this->clearAccessToken->handle();
 
-        return redirect('/');
+        return Inertia::render('UsernameInput', [
+            'message' => 'トークンがクリアされました。再度トークンを取得してください。',
+        ]);
     }
 }

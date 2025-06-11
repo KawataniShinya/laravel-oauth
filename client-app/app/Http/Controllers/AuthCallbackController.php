@@ -17,13 +17,17 @@ class AuthCallbackController extends Controller
 
     public function handle(Request $request)
     {
-        $request->validate([
-            'code' => 'required|string',
-            'state' => 'nullable|string',
-        ]);
-
         $username = $request->session()->get('username');
         $code = $request->input('code');
+
+        if (!$code) {
+            return Inertia::render('CredentialInput', [
+                'errorMessage' => '認可要求が許可されませんでした',
+                'codeGrantUrl' => config('services.auth.code_grant_url'),
+                'clientId' => config('services.auth.code_grant_client_id'),
+                'redirectUri' => config('services.auth.code_redirect_uri'),
+            ]);
+        }
 
         $response = $this->authCodeGrant->handle($username, $code);
 

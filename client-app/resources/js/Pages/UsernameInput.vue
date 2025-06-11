@@ -1,5 +1,5 @@
 <template>
-    <div class="p-6 max-w-md mx-auto">
+    <div class="p-6 max-w-2xl mx-auto">
         <h1 class="text-2xl font-bold mb-4">ユーザー名入力</h1>
 
         <form @submit.prevent="submit">
@@ -35,15 +35,27 @@
                 登録済みトークンをクリア
             </button>
         </div>
+
+        <!-- メッセージ表示 -->
+        <div v-if="message" class="mt-4 text-blue-500">
+            {{ message }}
+        </div>
     </div>
 </template>
 
 <script setup>
 import { useForm, router } from '@inertiajs/vue3'
+import { computed } from 'vue'
 
 const form = useForm({
     username: '',
 })
+
+const props = defineProps({
+    message: String,
+})
+
+const message = computed(() => props.message || '')
 
 const submit = () => {
     form.post('/fetch-token')
