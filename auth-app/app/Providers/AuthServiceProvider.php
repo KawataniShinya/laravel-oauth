@@ -2,6 +2,12 @@
 
 namespace App\Providers;
 
+use App\Http\Controllers\PassportApproveAuthorizationController;
+use App\Http\Controllers\PassportAuthorizationController;
+use App\Http\Controllers\PassportDenyAuthorizationController;
+use Illuminate\Contracts\Auth\StatefulGuard;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Route;
 use Illuminate\Support\ServiceProvider;
 use Laravel\Passport\Passport;
 
@@ -12,7 +18,10 @@ class AuthServiceProvider extends ServiceProvider
      */
     public function register(): void
     {
-        //
+        // StatefulGuard をバインドする
+        $this->app->when(PassportAuthorizationController::class)
+            ->needs(StatefulGuard::class)
+            ->give(fn () => Auth::guard());
     }
 
     /**
@@ -25,5 +34,13 @@ class AuthServiceProvider extends ServiceProvider
 
         Passport::tokensExpireIn(now()->addDays(config('passport.token_expires_days')));
         Passport::refreshTokensExpireIn(now()->addDays(config('passport.refresh_token_expires_days')));
+
+        // カスタムのAuthorizationControllerを使用する
+        Route::middleware(['web', 'auth'])
+        ->prefix('oauth')
+            ->group(function () {
+                Route::get('/authorize', [PassportAuthorizationController::class, 'authorize'])
+                    ->name('passport.authorizations.authorize');
+            });
     }
 }
