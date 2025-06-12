@@ -20,27 +20,23 @@ class CustomerController extends Controller
 
     public function fetch(Request $request)
     {
-        $request->validate([
-            'username' => 'required',
-            'password' => 'required',
-        ]);
+        $username = $request->session()->get('username');
 
-        $username = $request->username;
-        $password = $request->password;
-
-        $token = $this->fetchAccessToken->handle($username, $password);
+        $token = $this->fetchAccessToken->handle($username);
         if (!$token) {
-            return response()->json(['error' => 'トークン取得失敗'], 401);
+            return Inertia::render('ResourceSelection', [
+                'errorMessage' => 'トークンが無効です。',
+            ]);
         }
 
         $customers = $this->fetchCustomerList->handle($token->access_token);
         if (is_string($customers)) {
-            return Inertia::render('Home', [
+            return Inertia::render('ResourceSelection', [
                 'errorMessage' => '許可されていません: ' . $customers,
             ]);
         }
         if (!$customers) {
-            return Inertia::render('Home', [
+            return Inertia::render('ResourceSelection', [
                 'errorMessage' => '顧客取得失敗',
             ]);
         }

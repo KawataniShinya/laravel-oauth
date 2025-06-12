@@ -2,24 +2,33 @@
 
 namespace App\UseCase;
 
+use Illuminate\Http\Client\ConnectionException;
 use Illuminate\Support\Facades\Http;
 
 class FetchProductList
 {
     /**
      * @param string $accessToken
-     * @return array|null
+     * @return array|string|null
      */
-    public function handle(string $accessToken): ?array
+    public function handle(string $accessToken): array|string|null
     {
-        $response = Http::withToken($accessToken)
-            ->acceptJson()
-            ->get(config('services.resource.product_url'));
+        try {
+            $response = Http::withToken($accessToken)
+                ->acceptJson()
+                ->get(config('services.resource.product_url'));
 
-        if (!$response->ok()) {
+            if ($response->status() === 403) {
+                return $response->body();
+            }
+
+            if (!$response->ok()) {
+                return null;
+            }
+
+            return $response->json();
+        } catch (ConnectionException $e) {
             return null;
         }
-
-        return $response->json();
     }
 }
