@@ -10,6 +10,9 @@ RUN docker-php-ext-install pdo_mysql
 RUN pecl install xdebug-3.4.3
 RUN docker-php-ext-enable xdebug
 
+RUN pecl install redis
+RUN docker-php-ext-enable redis
+
 COPY ./xdebug/php-xdebug.ini /usr/local/etc/php/conf.d/docker-php-ext-xdebug.ini
 
 WORKDIR "/var/www/app"

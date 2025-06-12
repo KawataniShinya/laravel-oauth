@@ -6,6 +6,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
+use Laravel\Passport\HasApiTokens;
 
 /**
  * 
@@ -35,12 +36,16 @@ use Illuminate\Notifications\Notifiable;
  * @property int $role_id
  * @method static \Illuminate\Database\Eloquent\Builder<static>|User whereRoleId($value)
  * @property-read \App\Models\Role $role
+ * @property-read \Illuminate\Database\Eloquent\Collection<int, \Laravel\Passport\Client> $clients
+ * @property-read int|null $clients_count
+ * @property-read \Illuminate\Database\Eloquent\Collection<int, \Laravel\Passport\Token> $tokens
+ * @property-read int|null $tokens_count
  * @mixin \Eloquent
  */
 class User extends Authenticatable
 {
     /** @use HasFactory<\Database\Factories\UserFactory> */
-    use HasFactory, Notifiable;
+    use HasApiTokens, HasFactory, Notifiable;
 
     /**
      * The attributes that are mass assignable.
