@@ -1,4 +1,4 @@
-# laravel-domestic-expenses
+# laravel-oauth
 
 ## Over View
 OAuth2プロセス学習用プロジェクト
