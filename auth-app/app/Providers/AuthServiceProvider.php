@@ -35,6 +35,13 @@ class AuthServiceProvider extends ServiceProvider
         Passport::tokensExpireIn(now()->addDays(config('passport.token_expires_days')));
         Passport::refreshTokensExpireIn(now()->addDays(config('passport.refresh_token_expires_days')));
 
+        // スコープ定義を追加(OIDC対応)
+        Passport::tokensCan([
+            'openid' => 'OpenID Connect scope',
+            'profile' => 'Access basic profile info',
+            'email' => 'Access email address',
+        ]);
+
         // カスタムのAuthorizationControllerを使用する
         Route::middleware(['web', 'auth'])
         ->prefix('oauth')
