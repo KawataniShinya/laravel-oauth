@@ -2,9 +2,8 @@
 
 namespace App\Providers;
 
-use App\Http\Controllers\PassportApproveAuthorizationController;
+use App\Http\Controllers\OIDC\PassportAccessTokenController;
 use App\Http\Controllers\PassportAuthorizationController;
-use App\Http\Controllers\PassportDenyAuthorizationController;
 use Illuminate\Contracts\Auth\StatefulGuard;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
@@ -49,5 +48,11 @@ class AuthServiceProvider extends ServiceProvider
                 Route::get('/authorize', [PassportAuthorizationController::class, 'authorize'])
                     ->name('passport.authorizations.authorize');
             });
+
+        // OIDCでIDトークンを発行するためのカスタムルート
+        Route::middleware('api')->post(
+            '/oauth/token',
+            [PassportAccessTokenController::class, 'issueToken']
+        );
     }
 }

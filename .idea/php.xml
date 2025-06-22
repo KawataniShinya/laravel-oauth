@@ -392,7 +392,7 @@
   <component name="PhpUnit">
     <phpunit_settings>
       <PhpUnitSettings configuration_file_path="$PROJECT_DIR$/client-app/phpunit.xml" custom_loader_path="$PROJECT_DIR$/client-app/vendor/autoload.php" use_configuration_file="true" />
-      <PhpUnitSettings configuration_file_path="$PROJECT_DIR$/resource-app/phpunit.xml" custom_loader_path="$PROJECT_DIR$/resource-app/vendor/autoload.php" use_configuration_file="true" />
+      <PhpUnitSettings configuration_file_path="$PROJECT_DIR$/auth-app/phpunit.xml" custom_loader_path="$PROJECT_DIR$/auth-app/vendor/autoload.php" use_configuration_file="true" />
     </phpunit_settings>
   </component>
   <component name="PsalmOptionsConfiguration">
