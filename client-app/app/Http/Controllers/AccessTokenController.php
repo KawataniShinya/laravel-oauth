@@ -34,7 +34,7 @@ class AccessTokenController extends Controller
 
         // CredentialInputにリダイレクト
         // トークンが取得できた場合は認可スキップフラグを設定
-        // OIDCのsubがセッションに保存されている場合はOIDC認証スキップフラグを設定
+        // OIDCはさらにsubがセッションに保存されている場合にOIDC認証スキップフラグを設定
         return redirect()->route('credential.input')->with([
             'codeGrantUrl' => config('services.auth.code_grant_url'),
             'clientId' => config('services.auth.code_grant_client_id'),
@@ -42,7 +42,7 @@ class AccessTokenController extends Controller
             'OIDCClientId' => config('services.auth.oidc_code_grant_client_id'),
             'redirectUriOIDC' => config('services.auth.oidc_redirect_uri'),
             'skipAuth' => isset($token),
-            'skipOIDC' => isset($sub),
+            'skipOIDC' => isset($token) && isset($sub),
         ]);
     }
 

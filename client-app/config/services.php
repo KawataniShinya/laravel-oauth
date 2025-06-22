@@ -51,5 +51,6 @@ return [
         'oidc_code_grant_client_id' => env('OIDC_CODE_GRANT_CLIENT_ID'),
         'oidc_code_grant_client_secret' => env('OIDC_CODE_GRANT_CLIENT_SECRET'),
         'oidc_redirect_uri' => env('OIDC_REDIRECT_URI'),
+        'oidc_userinfo_url' => env('OIDC_USERINFO_URL'),
     ],
 ];

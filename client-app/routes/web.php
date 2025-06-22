@@ -54,6 +54,9 @@ Route::middleware(['username.session'])->group(function () {
     // 8. ユーザー情報表示
     Route::get('/userinfo', [UserInfoController::class, 'handle'])->name('userinfo');
 
-    // 9. ログアウト
+    // 9. ユーザー詳細情報表示
+    Route::get('/userinfo-detail', [UserInfoController::class, 'detail'])->name('userinfo.detail');
+
+    // 10. ログアウト
     Route::post('/logout', [LogoutController::class, 'handle'])->name('logout');
 });
