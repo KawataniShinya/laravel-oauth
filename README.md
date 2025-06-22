@@ -368,7 +368,7 @@ php artisan passport:client --password
   Client secret ........................................................................................... 2Oi**********************************uV2 
 ```
 
-CodeGrant用クライアントを作成
+CodeGrant用クライアント(クライアントアプリケーション用)を作成
 ```shell
 php artisan passport:client
 
@@ -387,7 +387,7 @@ php artisan passport:client
   Client secret ........................................................................................... pti**********************************v6B
 ```
 
-クライアントアプリケーション用クライアントを作成
+リソースサーバー用クライアントを作成
 ```shell
 php artisan passport:client --client
 

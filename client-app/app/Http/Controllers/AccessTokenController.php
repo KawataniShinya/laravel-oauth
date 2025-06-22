@@ -30,20 +30,20 @@ class AccessTokenController extends Controller
         $request->session()->put('username', $username);
 
         $token = $this->fetchAccessToken->handle($username);
+        $sub = $request->session()->get('sub');
 
-        // トークンが見つかった場合はリソース選択へ遷移
-        if ($token) {
-            return redirect('/resource-selection');
-        }
-
-        // トークンが取得できなかった場合はCredentialInputにリダイレクト
-        return Inertia::location(
-            route('credential.input', [
-                'codeGrantUrl' => config('services.auth.code_grant_url'),
-                'clientId' => config('services.auth.code_grant_client_id'),
-                'redirectUri' => config('services.auth.code_redirect_uri'),
-            ])
-        );
+        // CredentialInputにリダイレクト
+        // トークンが取得できた場合は認可スキップフラグを設定
+        // OIDCのsubがセッションに保存されている場合はOIDC認証スキップフラグを設定
+        return redirect()->route('credential.input')->with([
+            'codeGrantUrl' => config('services.auth.code_grant_url'),
+            'clientId' => config('services.auth.code_grant_client_id'),
+            'redirectUri' => config('services.auth.code_redirect_uri'),
+            'OIDCClientId' => config('services.auth.oidc_code_grant_client_id'),
+            'redirectUriOIDC' => config('services.auth.oidc_redirect_uri'),
+            'skipAuth' => isset($token),
+            'skipOIDC' => isset($sub),
+        ]);
     }
 
     public function clear(Request $request)

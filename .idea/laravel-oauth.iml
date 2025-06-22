@@ -178,6 +178,7 @@
       <excludeFolder url="file://$MODULE_DIR$/client-app/vendor/laravel/sail" />
       <excludeFolder url="file://$MODULE_DIR$/client-app/vendor/laravel/serializable-closure" />
       <excludeFolder url="file://$MODULE_DIR$/client-app/vendor/laravel/tinker" />
+      <excludeFolder url="file://$MODULE_DIR$/client-app/vendor/lcobucci/jwt" />
       <excludeFolder url="file://$MODULE_DIR$/client-app/vendor/league/commonmark" />
       <excludeFolder url="file://$MODULE_DIR$/client-app/vendor/league/config" />
       <excludeFolder url="file://$MODULE_DIR$/client-app/vendor/league/flysystem" />

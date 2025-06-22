@@ -2,17 +2,17 @@
 
 namespace App\Http\Controllers;
 
-use App\UseCase\AuthCodeGrant;
+use App\UseCase\OIDCCodeGrant;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 
-class AuthCallbackController extends Controller
+class OIDCCallbackController extends Controller
 {
-    protected AuthCodeGrant $authCodeGrant;
+    protected OIDCCodeGrant $oidcCodeGrant;
 
-    public function __construct(AuthCodeGrant $authCodeGrant)
+    public function __construct(OIDCCodeGrant $oidcCodeGrant)
     {
-        $this->authCodeGrant = $authCodeGrant;
+        $this->oidcCodeGrant = $oidcCodeGrant;
     }
 
     public function handle(Request $request)
@@ -22,7 +22,7 @@ class AuthCallbackController extends Controller
 
         if (!$code) {
             return Inertia::render('CredentialInput', [
-                'errorMessage' => '認可要求が許可されませんでした',
+                'errorMessage' => 'コードが提供されていません。認証されませんでした。',
                 'codeGrantUrl' => config('services.auth.code_grant_url'),
                 'clientId' => config('services.auth.code_grant_client_id'),
                 'redirectUri' => config('services.auth.code_redirect_uri'),
@@ -33,9 +33,9 @@ class AuthCallbackController extends Controller
             ]);
         }
 
-        $response = $this->authCodeGrant->handle($username, $code);
+        $response = $this->oidcCodeGrant->handle($username, $code);
 
-        if (!$response) {
+        if (!$response || !isset($response['sub'])) {
             return Inertia::render('CredentialInput', [
                 'errorMessage' => 'トークン取得失敗',
                 'codeGrantUrl' => config('services.auth.code_grant_url'),
@@ -48,6 +48,9 @@ class AuthCallbackController extends Controller
             ]);
         }
 
-        return redirect('/resource-selection');
+        // セッションにsubを保存
+        $request->session()->put('sub', $response['sub']);
+
+        return redirect()->route('userinfo');
     }
 }
