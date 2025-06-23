@@ -40,6 +40,11 @@
         <div v-if="message" class="mt-4 text-blue-500">
             {{ message }}
         </div>
+
+        <!-- エラーメッセージ表示 -->
+        <div v-if="errorMessage" class="mt-4 text-red-500">
+            {{ errorMessage }}
+        </div>
     </div>
 </template>
 
@@ -53,9 +58,11 @@ const form = useForm({
 
 const props = defineProps({
     message: String,
+    errorMessage : String,
 })
 
 const message = computed(() => props.message || '')
+const errorMessage = computed(() => props.errorMessage || '')
 
 const submit = () => {
     form.post('/fetch-token')

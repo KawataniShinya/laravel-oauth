@@ -100,6 +100,7 @@ class PassportAuthorizationController
         $user = $this->guard->user();
         $client = $clients->find($authRequest->getClient()->getIdentifier());
 
+        // 該当CodeGrantクライアントで認可済みトークンが存在するため認可画面をスキップ
         if ($request->get('prompt') !== 'consent' &&
             ($client->skipsAuthorization() || $this->hasValidToken($tokens, $user, $client, $scopes))) {
             return $this->approveRequest($authRequest, $user);
@@ -112,6 +113,7 @@ class PassportAuthorizationController
         $request->session()->put('authToken', $authToken = Str::random());
         $request->session()->put('authRequest', $authRequest);
 
+        // 認可画面を表示
         return Inertia::render('OAuth/Authorize', [
             'client' => $client,
             'user' => $user,
