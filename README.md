@@ -1,10 +1,11 @@
 # laravel-oauth
 
 ## Over View
-OAuth2プロセス学習用プロジェクト
+OAuth2プロセス(+ Open ID Connect)学習用プロジェクト
 
 ## Details
-OAuth2の認可サーバー、リソースサーバー、クライアントアプリケーションをそれぞれ別のコンテナで構築し、学習用に利用する。
+OAuth2の認可サーバー、リソースサーバー、クライアントアプリケーションをそれぞれ別のコンテナで構築し、学習用に利用する。\
+さらに、OAuth2認可機能を基盤に追加実装した Open ID Connect (OIDC) による認証プロセスを確認することができる。
 
 ### データ配置
 それぞれに配置されているデータは下記の通り。
@@ -18,6 +19,7 @@ OAuth2の認可サーバー、リソースサーバー、クライアントア�
     - PasswordGrant用クライアント
     - CodeGrant用クライアント
     - リソースサーバー用クライアント
+    - OIDC用CodeGrant用クライアント 
 - リソースサーバー
   - 顧客情報
   - 商品情報
@@ -52,7 +54,6 @@ OAuth2の認可サーバー、リソースサーバー、クライアントア�
 - リソースサーバーから認可サーバーへのイントロスペクションAPIは、認可状況の確認が必要になった都度リクエストされる。(商用利用の場合はキャッシュ利用を推奨)
 - クライアントアプリケーションは認可プロセス確認用ツールの位置付けのため、認証機能は実装されていない。
 
-
 ### 認可プロセス
 このプロジェクトにおける認可プロセスの流れは下記の通り。
 
@@ -70,22 +71,20 @@ sequenceDiagram
 
     %% Step 2: Token Request with Credentials
     User->>ClientApp: PasswordGrantを選択 (パスワードを入力)
-    ClientApp->>AuthServer: Password Grantでトークン要求 (username/password) - ③
-    AuthServer-->>ClientApp: アクセストークン発行 - ⑤
+    ClientApp->>AuthServer: Password Grantでトークン要求 (username/password) - (4)
+    AuthServer-->>ClientApp: アクセストークン発行 - (7)
 
     %% Step 3: Access Protected Resource
     ClientApp-->>User: 取得情報選択画面表示
     User->>ClientApp: 取得情報(顧客 or 商品)選択
-    ClientApp->>ResourceServer: アクセストークン付きでリソース要求 - ⑥
-    ResourceServer->>AuthServer: トークンのイントロスペクション (有効性・スコープ確認) - ⑦
-    AuthServer-->>ResourceServer: トークン情報を返却 - ⑧
+    ClientApp->>ResourceServer: アクセストークン付きでリソース要求 - (9)
+    ResourceServer->>AuthServer: トークンのイントロスペクション (有効性・スコープ確認) - (10)
+    AuthServer-->>ResourceServer: トークン情報を返却 - (11)
 
     %% Step 4: Response
     ResourceServer-->>ClientApp: 保護リソースのデータ返却
     ClientApp-->>User: 結果を表示
 ```
-
-
 
 #### CodeGrant
 ```mermaid
@@ -100,7 +99,7 @@ sequenceDiagram
   ClientApp-->>User: トークン取得情報入力画面を表示
   User->>ClientApp: CodeGrantを選択
   ClientApp-->>User: 認可エンドポイントにリダイレクト
-  User-->>AuthServer: 認可リクエスト (リダイレクトURL含む) - ①
+  User-->>AuthServer: 認可リクエスト (リダイレクトURL含む) - (1)
 
 %% Step 2: Authentication and Authorization
   AuthServer-->>User: ログイン画面表示
@@ -109,37 +108,83 @@ sequenceDiagram
   User->>AuthServer: アクセス許可
 
 %% Step 3: Redirect with Code
-  AuthServer-->>User: クライアントアプリケーションへリダイレクト (code付き) - ②
+  AuthServer-->>User: クライアントアプリケーションへリダイレクト (code付き) - (3)
   User-->>ClientApp: リダイレクト (code)
 
 %% Step 4: Token Exchange
-  ClientApp->>AuthServer: 認可コードでトークン要求 - ④
-  AuthServer-->>ClientApp: アクセストークン発行 - ⑤
+  ClientApp->>AuthServer: 認可コードでトークン要求 - (5)
+  AuthServer-->>ClientApp: アクセストークン発行 - (7)
 
 %% Step 5: Access Protected Resource
   ClientApp-->>User: 取得情報選択画面表示
   User->>ClientApp: 取得情報(顧客 or 商品)選択
-  ClientApp->>ResourceServer: アクセストークン付きでリソース要求 - ⑥
-  ResourceServer->>AuthServer: トークンのイントロスペクション (有効性・スコープ確認) - ⑦
-  AuthServer-->>ResourceServer: トークン情報を返却 - ⑧
+  ClientApp->>ResourceServer: アクセストークン付きでリソース要求 - (9)
+  ResourceServer->>AuthServer: トークンのイントロスペクション (有効性・スコープ確認) - (10)
+  AuthServer-->>ResourceServer: トークン情報を返却 - (11)
 
 %% Step 6: Response
   ResourceServer-->>ClientApp: 保護リソースのデータ返却
   ClientApp-->>User: 結果を表示
 ```
 
+### OIDC認証プロセス
+このプロジェクトにおけるOIDC認証プロセスの流れは下記の通り。
+```mermaid
+sequenceDiagram
+  participant User
+  participant ClientApp as クライアントアプリケーション
+  participant AuthServer as 認可サーバー (Laravel Passport)
+  participant ResourceServer as リソースサーバー
+
+%% Step 1: Authorization Request
+  User->>ClientApp: アプリケーションにアクセス (ユーザー名)
+  ClientApp-->>User: トークン取得情報入力画面を表示
+  User->>ClientApp: CodeGrantを選択
+  ClientApp-->>User: 認可エンドポイントにリダイレクト
+  User-->>AuthServer: 認可リクエスト (リダイレクトURL + scope=openid 含む) - (2)
+
+%% Step 2: Authentication and Authorization
+  AuthServer-->>User: ログイン画面表示
+  User->>AuthServer: 認証情報入力
+  AuthServer-->>User: 認可画面表示
+  User->>AuthServer: アクセス許可
+
+%% Step 3: Redirect with Code
+  AuthServer-->>User: クライアントアプリケーションへリダイレクト (code付き) - (3)
+  User-->>ClientApp: リダイレクト (code)
+
+%% Step 4: Token Exchange
+  ClientApp->>AuthServer: 認可コードでトークン要求(OIDC用) - (6)
+  AuthServer-->>ClientApp: アクセストークン + IDトークン 発行 - (8)
+
+%% Step 5: Token Parse
+  ClientApp->>ClientApp: IDトークンの検証(JWT署名確認)
+  ClientApp-->>User: ユーザー情報表示(IDトークンの内容)
+
+%% Step 6: Request user details
+  User->>ClientApp: ユーザー詳細情報取得
+  ClientApp->>AuthServer: ユーザー情報要求(`userinfo`エンドポイント) - (12)
+  AuthServer-->>ClientApp: ユーザー情報返却 - (13)
+  ClientApp-->>User: ユーザー情報表示
+```
+
 ### リクエスト例
-#### ① 認可リクエスト (リダイレクトURL含む)
+#### (1) 認可リクエスト (リダイレクトURL含む)
 ```html
 http://localhost.auth-app.sample.jp/oauth/authorize?client_id=4&redirect_uri=http%3A%2F%2Flocalhost.client-app.sample.jp%2Fauth%2Fcallback&response_type=code&scope=&state=stateDummy
 ```
 
-#### ② アクライアントアプリケーションへリダイレクト (code付き)
+#### (2) 認可リクエスト (リダイレクトUR + scope=openid L含む)
+```html
+http://localhost.auth-app.sample.jp/oauth/authorize?client_id=4&redirect_uri=http%3A%2F%2Flocalhost.client-app.sample.jp%2Fauth%2Fcallback&response_type=code&scope=openid%20profile%20email&state=stateDummy
+```
+
+#### (3) アクライアントアプリケーションへリダイレクト (code付き)
 ```html
 http://localhost.client-app.sample.jp/auth/callback?code=def...a56&state=stateDummy
 ```
 
-#### ③ Password Grantでトークン要求 (username/password)
+#### (4) Password Grantでトークン要求 (username/password)
 PasswordGrant用クライアントにリクエスト
 ```shell
 curl -i -X POST http://localhost.auth-app.sample.jp/oauth/token \
@@ -154,8 +199,8 @@ curl -i -X POST http://localhost.auth-app.sample.jp/oauth/token \
 }'
 ```
 
-#### ④ 認可コードでトークン要求
-CodeGrant用クライアントにリクエスト
+#### (5) 認可コードでトークン要求
+CodeGrant用クライアントにリクエスト。
 ```shell
 curl -X POST http://localhost.auth-app.sample.jp/oauth/token \
   -H "Content-Type: application/json" \
@@ -168,7 +213,21 @@ curl -X POST http://localhost.auth-app.sample.jp/oauth/token \
 }'
 ```
 
-#### ⑤ アクセストークン発行
+#### (6) 認可コードでトークン要求(OIDC用)
+OIDC用CodeGrantクライアントにリクエスト。(クライアントアプリケーションへのコールバックであるリダイレクトURLが異なる)
+```shell
+curl -X POST http://localhost.auth-app.sample.jp/oauth/token \
+  -H "Content-Type: application/json" \
+  -d '{
+    "grant_type": "authorization_code",
+    "client_id": "4",
+    "client_secret": "B3r***BSS",
+    "redirect_uri": "http://localhost.client-app.sample.jp/oidc/callback",
+    "code": "def***e0b"
+}'
+```
+
+#### (7) アクセストークン発行
 ```json
 {
   "token_type": "Bearer",
@@ -178,13 +237,40 @@ curl -X POST http://localhost.auth-app.sample.jp/oauth/token \
 }
 ```
 
-#### ⑥ アクセストークン付きでリソース要求
+#### (8) アクセストークン + IDトークン 発行
+```json
+{
+  "token_type": "Bearer",
+  "expires_in": 1296000,
+  "access_token": "eyJ***fyc",
+  "refresh_token": "def***889",
+  "id_token": "eyJ***Bp0"
+}
+```
+
+##### id_token(JWT claims)構成例
+- iss = "http://localhost.auth-app.sample.jp"
+- jti = "4b2f7a6b82808bad06da38658e01082c"
+- iat = {DateTimeImmutable}
+  - date = "2025-06-22 19:45:24.699444"
+  - timezone_type = {int} 3
+  - timezone = "Asia/Tokyo"
+- exp = {DateTimeImmutable}
+  - date = "2025-06-22 20:45:24.699444"
+  - timezone_type = {int} 3
+  - timezone = "Asia/Tokyo"
+- sub = "1"
+- name = "manager"
+- email = "manager@test.com"
+- email_verified = true
+
+#### (9) アクセストークン付きでリソース要求
 ```shell
 curl -X GET http://localhost.resource-app.sample.jp/api/customers \
   -H "Authorization: Bearer eyJ***n0k"
 ```
 
-#### ⑦ トークンのイントロスペクション (有効性・スコープ確認)
+#### (10) トークンのイントロスペクション (有効性・スコープ確認)
 リソースサーバー用クライアントにリクエスト
 ```shell
 curl -X POST http://localhost.auth-app.sample.jp/api/oauth/introspect \
@@ -193,7 +279,7 @@ curl -X POST http://localhost.auth-app.sample.jp/api/oauth/introspect \
   -d '{"token": "eyJ***n0k"}'
 ```
 
-#### ⑧ トークン情報を返却
+#### (11) トークン情報を返却
 ここで応答される`client_id`はトークン要求時のクライアントID
 ```json
 {
@@ -206,6 +292,24 @@ curl -X POST http://localhost.auth-app.sample.jp/api/oauth/introspect \
   "sub": 1,
   "iss": "http://localhost.auth-app.sample.jp",
   "token_type": "access_token"
+}
+```
+
+#### (12) ユーザー情報要求(`userinfo`エンドポイント)
+```shell
+curl -X GET localhost.auth-app.sample.jp/api/userinfo \
+  -H "Authorization: Bearer eyJ***hug"
+```
+
+#### (13) ユーザー情報返却
+```json
+{
+  "sub": 1,
+  "name": "manager",
+  "email": "manager@test.com",
+  "role_id": 1,
+  "created_at": "2025-06-22 21:02:01",
+  "updated_at": "2025-06-23 09:36:15"
 }
 ```
 
@@ -268,6 +372,8 @@ docker compose exec client-server bash
 composer install
 cp -p /var/www/app/.env.example /var/www/app/.env
 php artisan key:generate
+openssl genrsa -out storage/oauth-private.key 4096
+openssl rsa -in storage/oauth-private.key -pubout -out storage/oauth-public.key
 exit
 ````
 
@@ -400,6 +506,25 @@ php artisan passport:client --client
   Client secret ........................................................................................... yig**********************************9HH 
 ```
 
+OIDC用CodeGrantクライアント(クライアントアプリケーション用)を作成
+```shell
+php artisan passport:client
+
+ Which user ID should the client be assigned to? (Optional):
+ > 
+
+ What should we name the client?:
+ > CodeGrantClientForOIDC     
+
+ Where should we redirect the request after authorization? [http://localhost.auth-app.sample.jp/auth/callback]:
+ > http://localhost.client-app.sample.jp/oidc/callback
+
+   INFO  New client created successfully.  
+
+  Client ID ...................................................................................................................................... 4  
+  Client secret ........................................................................................... B3r**********************************BSS
+```
+
 ```shell
 exit
 ```
@@ -492,3 +617,14 @@ composer require inertiajs/inertia-laravel
 ```shell
 npm install vue@3 @inertiajs/inertia @inertiajs/vue3 @vitejs/plugin-vue
 ```
+
+#### LaravelPassport + OIDC の追加実装
+LaravelPassport(OAuth2プロセス)にOIDCの認証機能を追加するため、独自に下記を実装。
+- 認証サーバー
+  - 認可(Code)リクエスト(/oauth/authorize)におけるscope=openidの場合の処理。(openidの許容とトークンへの登録)
+  - 認証後にアクセストークン+IDトークンを応答
+  - `/userinfo`APIを追加(認証済ユーザーの詳細情報を応答)
+- クライアントアプリケーション
+  - 認可サーバーへのCodeリクエストにscope=openidを追加
+  - 認証後に応答されるIDトークンの検証(JWT署名を確認)
+  - `/userinfo` へのアクセストークン付きリクエスト
