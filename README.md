@@ -353,7 +353,7 @@ docker compose exec auth-server bash
 composer install
 cp -p /var/www/app/.env.example /var/www/app/.env
 php artisan key:generate
-php artisan passport:install
+php artisan passport:keys
 exit
 ```
 
@@ -545,6 +545,9 @@ AUTH_PASSWORD_GRANT_CLIENT_SECRET=(PasswordGrant用クライアントシーク�
 
 AUTH_CODE_GRANT_CLIENT_ID=(CodeGrant用クライアントID)
 AUTH_CODE_GRANT_CLIENT_SECRET=(CodeGrant用クライアントシークレット)
+
+OIDC_CODE_GRANT_CLIENT_ID=(OIDC用CodeGrantクライアントID)
+OIDC_CODE_GRANT_CLIENT_SECRET=(OIDC用CodeGrantクライアントシークレット)
 ```
 
 ### 11. Webアプリケーションログイン
