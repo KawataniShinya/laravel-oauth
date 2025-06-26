@@ -752,7 +752,6 @@ sequenceDiagram
     box auth-app
       participant PassportAuthorizationController as PassportAuthorizationController(authorize)
       participant PassportAccessTokenController as PassportAccessTokenController(issueToken)
-      participant IntrospectionController as IntrospectionController(introspect)
       participant UserInfoApiController as UserInfoApiController(show)
     end
     
