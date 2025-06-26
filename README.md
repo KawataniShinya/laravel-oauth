@@ -631,3 +631,148 @@ LaravelPassport(OAuth2プロセス)にOIDCの認証機能を追加するため�
   - 認可サーバーへのCodeリクエストにscope=openidを追加
   - 認証後に応答されるIDトークンの検証(JWT署名を確認)
   - `/userinfo` へのアクセストークン付きリクエスト
+
+### 13. コンポーネントシーケンス
+アプリケーションコンポーネントの関連やルーティングフローを示すためのシーケンス図。
+
+#### 共通フロー(トップ画面/トークンクリア/ユーザー名入力/保存済みトークンチェック)
+```mermaid
+sequenceDiagram
+    participant Browser
+    box client-app
+      participant InitController as InitController(handle)
+      participant AccessTokenController(clear)
+      participant AccessTokenController(fetch)
+      participant FetchAccessToken as FetchAccessToken(handle)
+    end
+    
+    Browser->>InitController: /
+    InitController-->>Browser: 画面表示
+
+    Browser->>AccessTokenController(clear): /clear-token
+    AccessTokenController(clear)-->>Browser: 画面表示
+
+    Browser->>AccessTokenController(fetch): /fetch-token(username)
+    AccessTokenController(fetch)->>FetchAccessToken: (username) 
+    FetchAccessToken-->>AccessTokenController(fetch): (token)
+    AccessTokenController(fetch)-->>Browser: 画面表示
+```
+
+#### PasswordGrantフロー
+```mermaid
+sequenceDiagram
+    participant Browser
+    box client-app
+      participant AuthPasswordController as AuthPasswordController(handle)
+      participant AuthPasswordGrant as AuthPasswordGrant(handle)
+      participant ProductController as ProductController(fetch)
+      participant FetchProductList as FetchProductList(handle)
+    end
+    box resource-app
+      participant AuthIntrospect as AuthIntrospect(handle)
+      participant ResourceProductController as ProductController(fetch)
+    end
+    box auth-app
+      participant PassportAccessTokenController as PassportAccessTokenController(issueToken)
+      participant IntrospectionController as IntrospectionController(introspect)
+    end
+    
+    Browser->>AuthPasswordController: /auth/password(password)
+    AuthPasswordController->>AuthPasswordGrant: (username, password)
+    AuthPasswordGrant->>PassportAccessTokenController: /oauth/token(client_id,client_secret,username,password)
+    PassportAccessTokenController-->>AuthPasswordGrant: (access_token)
+    AuthPasswordGrant-->>AuthPasswordController: (access_token)
+    AuthPasswordController-->>Browser: 結果表示
+
+    Browser->>ProductController: /products
+    ProductController->>FetchProductList: (accessToken)
+    FetchProductList->>AuthIntrospect: /api/products(accessToken)
+    AuthIntrospect->>IntrospectionController: /oauth/introspect(client_id,client_secret,token)
+    IntrospectionController-->>AuthIntrospect: (active, client_id, username, permissions, scopes, exp, sub, iss, token_type)
+    AuthIntrospect->>ResourceProductController: (request)
+    ResourceProductController-->>FetchProductList: (products)
+    FetchProductList-->>ProductController: (products) 
+    ProductController-->>Browser: (products)
+```
+
+#### CodeGrantフロー
+```mermaid
+sequenceDiagram
+    participant Browser
+    box client-app
+      participant AuthCallbackController as AuthCallbackController(handle)
+      participant AuthCodeGrant as AuthCodeGrant(handle)
+      participant ProductController as ProductController(fetch)
+      participant FetchProductList as FetchProductList(handle)
+    end
+    box resource-app
+      participant AuthIntrospect as AuthIntrospect(handle)
+      participant ResourceProductController as ProductController(fetch)
+    end
+    box auth-app
+      participant PassportAuthorizationController as PassportAuthorizationController(authorize)
+      participant PassportAccessTokenController as PassportAccessTokenController(issueToken)
+      participant IntrospectionController as IntrospectionController(introspect)
+    end
+    
+    Browser->>PassportAuthorizationController: /oauth/authorize(client_id,redirect_uri='/auth/callback')
+    PassportAuthorizationController-->>Browser: 認証画面表示
+    Browser->>PassportAuthorizationController: 認証情報入力
+    PassportAuthorizationController-->>Browser: 認可画面表示
+    Browser->>PassportAuthorizationController: アクセス許可
+    PassportAuthorizationController-->>AuthCallbackController: /auth/callback(code)
+    
+    AuthCallbackController->>AuthCodeGrant: (code)
+    AuthCodeGrant->>PassportAccessTokenController: /oauth/token(client_id,client_secret,redirect_uri='/auth/callback',code)
+    PassportAccessTokenController-->>AuthCodeGrant: (access_token)
+    AuthCodeGrant-->>AuthCallbackController: (access_token)
+    AuthCallbackController-->>Browser: 結果表示
+
+    Browser->>ProductController: /products
+    ProductController->>FetchProductList: (accessToken) 
+    FetchProductList->>AuthIntrospect: /api/products(accessToken)
+    AuthIntrospect->>IntrospectionController: oauth/introspect(client_id,client_secret,token)
+    IntrospectionController-->>AuthIntrospect: (active, client_id, username, permissions, scopes, exp, sub, iss, token_type)
+    AuthIntrospect->>ResourceProductController: (request)
+    ResourceProductController-->>FetchProductList: (products)
+    FetchProductList-->>ProductController: (products) 
+    ProductController-->>Browser: (products)
+```
+
+#### OIDCフロー
+```mermaid
+sequenceDiagram
+    participant Browser
+    box client-app
+      participant OIDCCallbackController as OIDCCallbackController(handle)
+      participant OIDCCodeGrant as OIDCCodeGrant(handle)
+      participant UserInfoController(handle)
+      participant UserInfoController(detail)
+    end
+    box auth-app
+      participant PassportAuthorizationController as PassportAuthorizationController(authorize)
+      participant PassportAccessTokenController as PassportAccessTokenController(issueToken)
+      participant IntrospectionController as IntrospectionController(introspect)
+      participant UserInfoApiController as UserInfoApiController(show)
+    end
+    
+    Browser->>PassportAuthorizationController: /oauth/authorize(client_id,redirect_uri='/oidc/callback',scope='openid')
+    PassportAuthorizationController-->>Browser: 認証画面表示
+    Browser->>PassportAuthorizationController: 認証情報入力
+    PassportAuthorizationController-->>Browser: 認可画面表示
+    Browser->>PassportAuthorizationController: アクセス許可
+    PassportAuthorizationController-->>OIDCCallbackController: /oidc/callback(code)
+
+    OIDCCallbackController->>OIDCCodeGrant: (code)
+    OIDCCodeGrant->>PassportAccessTokenController: /oauth/token(client_id,client_secret,redirect_uri='/oidc/callback',code)
+    PassportAccessTokenController-->>OIDCCodeGrant: (access_token,id_token)
+    OIDCCodeGrant-->>OIDCCodeGrant: IDトークンの検証(JWT署名確認)
+    OIDCCodeGrant-->>OIDCCallbackController: (access_token,sub)
+    OIDCCallbackController->>UserInfoController(handle): /userinfo
+    UserInfoController(handle)-->>Browser: 結果表示(sub,name,email)
+
+    Browser->>UserInfoController(detail): /userinfo-detail
+    UserInfoController(detail)->>UserInfoApiController: /api/userinfo(accessToken)
+    UserInfoApiController->>UserInfoController(detail): (sub,name,email,role_id,created_at,updated_at)
+    UserInfoController(detail)-->>Browser: 結果表示(sub,name,email,role_id,created_at,updated_at)
+```

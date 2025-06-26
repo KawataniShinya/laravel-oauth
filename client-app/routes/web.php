@@ -33,7 +33,7 @@ Route::middleware(['username.session'])->group(function () {
         ]);
     })->name('credential.input');
 
-    // 4-1. Authorization Code Grant
+    // 4-1. Authorization Password Grant
     Route::post('/auth/password', [AuthPasswordController::class, 'handle']);
 
     // 4-2. Authorization Code Grant (コールバック)
